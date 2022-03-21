@@ -1,0 +1,58 @@
+# log settings
+log:
+    disabled: false # logging can be turned off, if desired
+    filename: evmautomation.log # log file name
+    level: DEBUG # DEBUG, INFO, WARN, ERROR - reduce to INFO if everything is working
+
+# Binance Smart Chain Settings
+bsc:
+    rpc_url: https://bsc-dataseed1.defibit.io/ # RPC URL for Binance
+
+# telegram configuration
+telegram: 
+    disabled: true # set to false if you want telegram notifications
+    bot_token: 22222222:APITOKEN # get an actual api token - talk to @botfather
+    chat_id: 12345678 # talk to @userinfobot to get your user id
+
+# DRIP faucet configuration
+drip: 
+    disabled: true # self explanatory
+    wallet_file: drip-wallets.json # encrypted wallet file for DRIP
+    run_every_seconds: 3600 # default sleep time between checks
+    wallet_bnb_min_balance: 0.01 # if set to 0 will actually still check if balance is enough for gas-fees
+    hydration_table: # depending on how many DRIP is deposited, when to hydrate
+        1000: 0.005 # at >=1000 DRIP hydrate at 0.5% avail
+        100: 0.01   # at  >=100 DRIP hydrate at   1% avail
+        50: 0.0125  # at   >=50 DRIP hydrate at 1.5% avail
+        25: 0.015   # at   >=25 DRIP hydrate at   3% avail
+        10: 0.04    # at   >=10 DRIP hydrate at   5% avail
+        1: 0.1      # at    >=1 DRIP hydrate at  10% avail
+
+# DRIP Garden configuration
+garden:
+    disabled: true # self explanatory
+    wallet_file: garden-wallets.json # encrypted wallet file for DRIP Garden
+    wallet_bnb_min_balance: 0.01 # if set to 0 will actually still check if balance is enough for gas-fees
+    plant_table: # depending how many plants you have, wait until how many plants are grown until planting
+        1000: 10 # at >=1000 plants plant when 20 plants ar ready
+        500: 5   # at  >=500 plants plant when  5 plants ar ready
+        100: 3   # at  >=100 plants plant when  3 plants ar ready
+        10: 1    # at   >=10 plants plant when  1 plants ar ready
+        # else plant every 1 plant
+    max_seeds_loss: 0.003 # if we don't hit spot on how many seeds of a plant can be lost in % -> 0.003 = 3% (7776 seeds)
+    referrer: "0xd065D3CA0a13eC5A577E684BBF97a43BAF04cBf0" # referrer for the plant function, can be set to null, if you use mine, this will give some rewards to my wallet
+    sleep_time: 10 # sleep between checks, the more plants you have the lower you should set it, avoid 0 for overloading the system
+
+# Elephant TRUNK/Stampede configuration
+stampede:
+    disabled: true # self explanatory
+    wallet_file: stampede-wallets.json # encrypted wallet file for DRIP Garden
+    run_every_seconds: 3600 # default sleep time between checks
+    wallet_bnb_min_balance: 0.01 # if set to 0 will actually still check if balance is enough for gas-fees
+    roll_table: # depending on how many TRUNK is deposited, when to hydrate
+        5000: 0.0056 # at 5000 TRUNK roll at 0.56% avail
+        2000: 0.01   # at 2500 TRUNK roll at    1% avail
+        500: 0.03    # at  500 TRUNK roll at    3% avail
+        100: 0.04    # at  100 TRUNK roll at    4% avail
+        50: 0.05     # at   50 TRUNK roll at    5% avail
+        1: 0.1       # at    1 TRUNK roll at   10% avail

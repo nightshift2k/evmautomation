@@ -1,0 +1,5 @@
+from evmautomation.contracts.basecontract import BaseContract
+from evmautomation.contracts.bsccontract import BscContract
+from evmautomation.contracts.dripfaucetcontract import DripFaucetContract
+from evmautomation.contracts.dripgardencontract import DripGardenContract
+from evmautomation.contracts.trunkstampedecontract import TrunkStampedeContract
