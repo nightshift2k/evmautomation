@@ -1,8 +1,6 @@
 import logging
 import humanize
 from datetime import timedelta
-from math import floor
-from pprint import pprint
 from time import sleep
 from typing import List
 from hexbytes import HexBytes
@@ -15,13 +13,18 @@ LOG = logging.getLogger('evmautomation')
 
 class GardenPlantWorkflow(BscWorkflow):
 
+    DEFAULT_MAX_GAS = 250000
     DEFAULT_PLANT_THRESHOLD = 1 # plant at 1 plant
     DEFAULT_SLEEP_LOOP_SECONDS = 30
     DEFAULT_SEEDS_LOSS_THRESHOLD = 0.003
+    DEFAULT_RUN_EVERY_SECONDS = 3600
 
     def __init__(self, config=None, decryption_key: str = None) -> None:
             super().__init__(config, decryption_key)
             self.load_wallets(config.garden.wallet_file)
+            self.max_gas = self.config.garden.max_gas if self.config.garden.max_gas is not None else self.DEFAULT_MAX_GAS
+            self.run_every_seconds = self.config.garden.run_every_seconds if self.config.garden.run_every_seconds is not None else self.DEFAULT_RUN_EVERY_SECONDS
+
 
     def run(self):
         if self.config.garden.disabled == True:
@@ -44,19 +47,39 @@ class GardenPlantWorkflow(BscWorkflow):
                 bnb_min_balance = self.config.garden.wallet_bnb_min_balance if self.config.garden.wallet_bnb_min_balance is not None else 0
 
                 total_plants = contract.get_plants_planted()
-                seeds = contract.get_user_seeds()
                 new_plants, seed_remainder = contract.get_plants_ready_and_seed_remainder()
-                # calculate % of seeds lost 
                 seeds_loss_pct = (seed_remainder / contract.seeds_per_plant)
                 seed_range = True if seeds_loss_pct <= seeds_loss_threshold else False
+
                 LOG.debug(f'wallet {address} - BNB = {bnb_balance:.6f} - Total Plants = {total_plants}, New Plants = {new_plants}')
                 LOG.debug(f'wallet {address} - Unfinished Plant Seeds = {seed_remainder} - Seeds Loss % = {seeds_loss_pct*100:.3f}% - In Planting Range = {seed_range}')
-                plant_tx = contract.get_plant_transaction(referrer)
+
+                plant_tx = contract.get_plant_transaction(referrer, self.max_gas)
                 plant_fees = contract.estimate_transaction_fees(plant_tx)
+                
+                if not plant_fees:
+                    optimal_gas = contract.estimate_gas_fees(contract.get_plant_transaction(referrer, 10000000))
+                    LOG.warning(f'wallet {address} - gas fee estimation failed - current max gas = {self.max_gas} - optimal gas estimated = {optimal_gas}')
+                    self.tg_send_msg(
+                        f'*⛽ GAS TOO LOW!*\n\n' \
+                        f'*Current Max GAS:* `{self.max_gas}`\n' \
+                        f'*Optimal GAS (estd.):* `{optimal_gas}`\n\n' \
+                        f'Try to raise `max_gas` in the config!\n\n' \
+                        f'Will wait `{humanize.precisedelta(timedelta(seconds=self.run_every_seconds))}` for lower gas fees!',
+                        address
+                    )
+                    LOG.debug(f"sleeping for {self.run_every_seconds} seconds, in expecation of lower gas")
+                    sleep(self.run_every_seconds)
+
+                    continue
+
                 min_balance = max(bnb_min_balance, plant_fees)
+
                 if bnb_balance >= min_balance:
+
                     if total_plants > 0:
                         _, plants_threshold = self._plant_at(total_plants)
+
                         if new_plants >= plants_threshold and seed_range:
                             LOG.info(f'wallet {address} - due for planting at {new_plants} Plants, threshold is >= {plants_threshold} Plants')
 
@@ -65,16 +88,14 @@ class GardenPlantWorkflow(BscWorkflow):
                                 tx_gas_fees = tx_receipt.gasUsed if tx_receipt.gasUsed is not None else 0
                                 tx_gas_cost = tx_gas_fees * contract.get_gas_price()
                                 tx_hash = tx_receipt.transactionHash.hex() if (tx_receipt.transactionHash is not None and isinstance(tx_receipt.transactionHash, HexBytes)) else "UNKNOWN"
-                                ##
-                                pprint(tx_receipt)
-                                print("tx_hash: ", tx_hash)
-                                print("tx_gas_fees: ", tx_gas_fees)
-                                ##
                                 LOG.info(f'wallet {address} - transaction executed, tx hash = {tx_hash}')
+                                self.wait_for_tx_confirmation(tx_hash)
+                                
                                 new_total_plants = contract.get_plants_planted()
                                 _, new_plants_threshold = self._plant_at(new_total_plants)
                                 next_plant_time = contract.calculate_next_plant(new_plants_threshold)
                                 new_bnb_balance = contract.get_balance()
+
                                 self.tg_send_msg(
                                     f'*🌱 Planting performed!*\n\n' \
                                     f'*Old Amount:* `{total_plants} Plants`\n' \
@@ -99,7 +120,8 @@ class GardenPlantWorkflow(BscWorkflow):
                                     f'*Error Message:* `{e}`',
                                     address
                                 )
-                                LOG.error(f'wallet {address} - error during plant() transaction: {e}')
+                                LOG.exception(e)
+
 
                         else:
                             if new_plants >= plants_threshold and not seed_range:

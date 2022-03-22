@@ -5,7 +5,6 @@ Basic Wrapper for Web3 functions
 from web3 import Web3
 from web3.contract import Contract
 from typing import Any, List
-from pprint import pprint
 
 class BaseContract:
     """
@@ -48,16 +47,32 @@ class BaseContract:
         txnr = self._web3.eth.wait_for_transaction_receipt(txnh)
         return txnr
 
-    def estimate_transaction_fees(self, transaction):
+
+    def estimate_gas_fees(self, transaction):
         """
         Estimates gas fees for a submitted transaction.
+        """
+        try:
+            gas = self._web3.eth.estimate_gas(transaction)
+        except Exception as e:
+             gas = False
+        return gas
+
+#
+
+    def estimate_transaction_fees(self, transaction):
+        """
+        Estimates transaction fees for a submitted transaction.
         Gas is multiplied by price to reflect the fees
         in native token price.
         """
 
-        gas = self._web3.eth.estimate_gas(transaction)
-        gasprice = self.get_gas_price()
-        return gas * gasprice
+        gas = self.estimate_gas_fees(transaction)            
+        if gas > 0:
+            gasprice = self.get_gas_price()
+            return gas * gasprice
+        else:
+            return False
 
     def get_balance(self):
         """
