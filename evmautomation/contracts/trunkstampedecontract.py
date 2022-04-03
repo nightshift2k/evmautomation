@@ -12,6 +12,7 @@ class TrunkStampedeContract(BscContract):
     """
 
     DEPOSITS_DIV = 0.75 # deposits divisor (taken from website source)
+    REWARDS_FEE = 0.025 # 2.5% on the rewards
     DAILY_INTEREST = 0.0056 # daily interest rate = 0.56%
 
     def __init__(self, rpc_url: str, wallet_address: str) -> None:
@@ -22,7 +23,7 @@ class TrunkStampedeContract(BscContract):
         super().__init__(rpc_url, TRUNK_STAMPEDE_CONTRACT_ADDRESS, TRUNK_STAMPEDE_ABI, wallet_address)
 
     def get_user_available(self):
-        return float(self._web3.fromWei(self._contract.functions.claimsAvailable(self._wallet).call(), "ether"))
+        return float(self._web3.fromWei(self._contract.functions.claimsAvailable(self._wallet).call(), "ether")) * (1 - self.REWARDS_FEE)
 
     def get_user_deposits(self):
         data = self.get_user_info()

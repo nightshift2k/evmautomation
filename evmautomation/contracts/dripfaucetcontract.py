@@ -66,6 +66,13 @@ class DripFaucetContract(BscContract):
         tx = self._contract.functions.roll().buildTransaction(self.get_transaction_options(gas))
         return tx
 
+    def get_claim_transaction(self, gas=600000):
+        """
+        returns the claim transaction
+        """
+        tx = self._contract.functions.claim().buildTransaction(self.get_transaction_options(gas))
+        return tx
+
     def calc_time_until_amount_available(self, percent_reach) -> int:
         """
         calculates the time in seconds, when

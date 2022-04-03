@@ -1,5 +1,8 @@
+arrow
 cryptography
 humanize
 pytelegrambotapi
 pyyaml
+sqlitedict
+tenacity
 web3

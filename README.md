@@ -4,15 +4,16 @@ In DeFi there is constant pressure to perform different tasks, like compound, hy
 
 This tool was written to enable automation of those tasks to ensure you don't have to do it manually ;-)
 
-It was build to support EVM based blockchains but works currently with 3 contracts on the Binance Smart chain.
+It was build to support EVM based blockchains but works currently with 4 contracts on the Binance Smart chain.
 
 As it is build in a modular way, one can expand it quite easily to other projects or even other EVM-based chains.
 
-Currently supported projects are
+Currently supported projects are:
 
-- DRIP (Faucet Hydration)
-- DRIP Garden (Seed Planting)
-- TRUNK (Rolling Stampede Bonds)
+- DRIP Faucet - Hydrating & Claiming
+- DRIP Garden - Planting Seeds
+- TRUNK Native Staking - Rolling (reinvesting)
+- TRUNK Stampede - Rolling (reinvesting)
 
 ## 🔒 Disclaimer on Security and Encryption
 
@@ -88,6 +89,61 @@ optional arguments:
 The configuration consists of two steps:
 1. encrypt wallets and private keys
 2. configure via `config.yaml` or any alternate config file that can be specified via `--config`
+
+###  💬 Setting up a Telegram Bot
+
+EVMAutomation can notify you about everything it does via Telegram.
+
+Below we explain how to create your Telegram Bot, and how to get your Telegram user id.
+
+#### 1. Create your Telegram bot
+
+Start a chat with the [Telegram BotFather](https://telegram.me/BotFather)
+
+Send the message `/newbot`.
+
+*BotFather response:*
+
+> Alright, a new bot. How are we going to call it? Please choose a name for your bot.
+
+Choose the public name of your bot (e.x. `evmautomation bot`)
+
+*BotFather response:*
+
+> Good. Now let's choose a username for your bot. It must end in `bot`. Like this, for example: TetrisBot or tetris_bot.
+
+Choose the name id of your bot and send it to the BotFather (e.g. "`my_own_evmautomation_bot`")
+
+*BotFather response:*
+
+> Done! Congratulations on your new bot. You will find it at `t.me/yourbots_name_bot`. You can now add a description, about section and profile picture for your bot, see /help for a list of commands. By the way, when you've finished creating your cool bot, ping our Bot Support if you want a better username for it. Just make sure the bot is fully operational before you do this.
+
+> Use this token to access the HTTP API: `22222222:APITOKEN`
+
+> For a description of the Bot API, see this page: https://core.telegram.org/bots/api Father bot will return you the token (API key)
+
+Copy the API Token (`22222222:APITOKEN` in the above example) and keep use it for the config parameter `telegram.bot_token`.
+
+Don't forget to start the conversation with your bot, by clicking `/START` button
+
+#### 2. Get your Telegram user_id
+
+Talk to the [userinfobot](https://telegram.me/userinfobot)
+
+Get your "Id", you will use it for the config parameter `telegram.chat_id`.
+
+#### 3. Save the data to your `config.yaml`
+
+Edit your `config.yaml` or `config-yourcustomname.yaml` (in case you have multiple custom configs) and save the data you have retrieved from Telegram to the telegram section of the config.
+
+```yaml
+telegram: 
+    disabled: false
+    bot_token: 22222222:APITOKEN
+    chat_id: 12345678
+```
+
+You will retrieve notifications from now on, if some workflow action happens or errors occur.
 
 ### Encrypting wallets
 

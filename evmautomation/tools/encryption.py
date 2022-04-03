@@ -1,5 +1,5 @@
 import csv, json, logging, os
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 from typing import List
 
 LOG = logging.getLogger('evmautomation')
@@ -49,16 +49,21 @@ def load_encrypted_wallets(infile, key) -> List:
         return False
 
     if len(encodedWallets) < 1:
-        LOG.error('no wallet entries found in json or wrong structure!')
         return False
 
     decodedWallets = []
     for wallet in encodedWallets:
-        decodedWallets.append(
-            [
-                f.decrypt(wallet[0].encode()).decode(),
-                f.decrypt(wallet[1].encode()).decode()
-            ]
-        )
+        try:
+            decodedWallets.append(
+                [
+                    f.decrypt(wallet[0].encode()).decode(),
+                    f.decrypt(wallet[1].encode()).decode()
+                ]
+            )
+        except InvalidToken as e:
+            continue
     
-    return decodedWallets
+    if len(encodedWallets) != len(decodedWallets):
+        return False
+    else:
+        return decodedWallets

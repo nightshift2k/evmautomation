@@ -1,6 +1,8 @@
 # EVMAutomation rules
 /*.yaml
 /*.json
+zz_tests
+*.sqlite
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
