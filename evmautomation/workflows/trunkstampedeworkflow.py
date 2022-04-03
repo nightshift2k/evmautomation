@@ -26,7 +26,7 @@ class TrunkStampedeWorkflow(BscWorkflow):
         if not (isinstance(self.wallets, List) and len(self.wallets) > 0):
             return False
 
-        roll_times = []
+        next_runs = []
         for wallet in self.wallets:
             try:
                 #start try 
@@ -60,7 +60,6 @@ class TrunkStampedeWorkflow(BscWorkflow):
                                 f'Will wait `{humanize.precisedelta(timedelta(seconds=self.run_every_seconds))}` for lower gas fees!',
                                 address
                             )
-                            roll_times.append(self.run_every_seconds) # soft retry 
                             continue
 
                         min_balance = max(bnb_min_balance, roll_fees)
@@ -77,8 +76,6 @@ class TrunkStampedeWorkflow(BscWorkflow):
 
                                 new_deposit = deposit + available # todo: re-read from contract call
                                 new_bnb_balance = contract.get_balance()
-                                _, new_roll_threshold = self._roll_at(new_deposit)
-                                next_roll_time = contract.calc_time_until_amount_available(new_roll_threshold)
                                 
                                 self.tg_send_msg(
                                     f'*🐘 Roll performed!*\n\n' \
@@ -88,16 +85,12 @@ class TrunkStampedeWorkflow(BscWorkflow):
                                     f'*Percent Added:* `{pct_avail*100:.2f}%`\n' \
                                     f'*BNB balance:* `{new_bnb_balance:.6f} BNB`\n' \
                                     f'*Gas used:* `{tx_gas_cost:.6f} BNB`\n' \
-                                    f'*Next roll in:* `{humanize.precisedelta(timedelta(seconds=next_roll_time))}`\n' \
                                     f'*Transaction:* https://bscscan.com/tx/{tx_hash}',
                                     address
                                 )
 
                                 LOG.info(f'{wallet} - old deposit = {deposit} TRUNK - new deposit = {new_deposit} TRUNK - added = {available} TRUNK')
                                 LOG.info(f'{wallet} - transaction gas = {tx_gas_cost} - BNB balance = {new_bnb_balance}')
-                                LOG.info(f'{wallet} - next roll in {humanize.precisedelta(timedelta(seconds=next_roll_time))}')
-
-                                roll_times.append(next_roll_time)
                             
                             except Exception as e:
                                 self.tg_send_msg(
@@ -117,11 +110,12 @@ class TrunkStampedeWorkflow(BscWorkflow):
                                 address
                             )
                     else:
-                        next_roll_time = contract.calc_time_until_amount_available(roll_threshold)
-                        LOG.info(f'wallet {address} - available of {deposit*roll_threshold:.6f} TRUNK ({roll_threshold*100:.2f}%) not reached!')
-                        LOG.info(f'wallet {address} - roll retry in {humanize.precisedelta(timedelta(seconds=next_roll_time))}')
-                        roll_times.append(next_roll_time)
-            # end try
+                        time_left = contract.calc_time_until_amount_available(roll_threshold)
+                        next_runs.append(time_left)
+                        LOG.info(f'wallet {address} - available of {deposit*roll_threshold:.4f} TRUNK ({roll_threshold*100:.2f}%) for reinvesting not reached!')
+                        LOG.info(f'wallet {address} - next reinvest should approx. occur in {humanize.precisedelta(timedelta(seconds=time_left))}')
+
+#            # end try
 
             # start except
             except Exception as e:
@@ -134,13 +128,13 @@ class TrunkStampedeWorkflow(BscWorkflow):
             # end except
         # end for loop
 
-        # finally check the shortest wait time and sleep
-        if isinstance(roll_times, List) and len(roll_times) > 0:
-            roll_times.sort()
-            sleep_time = roll_times[0]
+        if len(next_runs) > 0:
+            next_runs.sort()
+            next_run = next_runs[0]
         else:
-            sleep_time = self.run_every_seconds
-
+            next_run = self.config.run_every_seconds
+        
+        sleep_time = min(max(next_run,0), self.run_every_seconds)
         return sleep_time
 
 

@@ -32,7 +32,7 @@ class TrunkNativeWorkflow(BscWorkflow):
         if not (isinstance(self.wallets, List) and len(self.wallets) > 0):
             return False
 
-        reinvest_times = []
+        next_runs = []
         for wallet in self.wallets:
             try:
                 #start try 
@@ -67,14 +67,15 @@ class TrunkNativeWorkflow(BscWorkflow):
                                 f'Will wait `{humanize.precisedelta(timedelta(seconds=self.run_every_seconds))}` for lower gas fees!',
                                 address
                             )
-                            reinvest_times.append(self.run_every_seconds) # soft retry 
                             continue
                         
                         min_balance = max(bnb_min_balance, reinvest_fees)
                         
                         if bnb_balance >= min_balance:
                             try:
+                                # danger zone
                                 tx_receipt = contract.send_transaction(reinvest_tx, private_key)
+                                
                                 tx_gas_fees = tx_receipt.gasUsed if tx_receipt.gasUsed is not None else 0
                                 tx_gas_cost = tx_gas_fees * contract.get_gas_price()
                                 tx_hash = tx_receipt.transactionHash.hex() if (tx_receipt.transactionHash is not None and isinstance(tx_receipt.transactionHash, HexBytes)) else "UNKNOWN"
@@ -84,8 +85,6 @@ class TrunkNativeWorkflow(BscWorkflow):
 
                                 new_deposit = deposit + available # todo: re-read from contract call
                                 new_bnb_balance = contract.get_balance()
-                                _, new_reinvest_threshold = self._reinvest_at(new_deposit)
-                                next_reinvest_time = contract.calc_time_until_amount_available(new_reinvest_threshold)
                                 
                                 self.tg_send_msg(
                                     f'*🐘 Reinvest performed!*\n\n' \
@@ -95,17 +94,13 @@ class TrunkNativeWorkflow(BscWorkflow):
                                     f'*Percent Added:* `{pct_avail*100:.2f}%`\n' \
                                     f'*BNB balance:* `{new_bnb_balance:.6f} BNB`\n' \
                                     f'*Gas used:* `{tx_gas_cost:.6f} BNB`\n' \
-                                    f'*Next reinvest in:* `{humanize.precisedelta(timedelta(seconds=next_reinvest_time))}`\n' \
                                     f'*Transaction:* https://bscscan.com/tx/{tx_hash}',
                                     address
                                 )
 
                                 LOG.info(f'{wallet} - old deposit = {deposit:.4f} TRUNK - new deposit = {new_deposit:.4f} TRUNK - added = {available:.4f} TRUNK')
                                 LOG.info(f'{wallet} - transaction gas = {tx_gas_cost} - BNB balance = {new_bnb_balance}')
-                                LOG.info(f'{wallet} - next reinvest in {humanize.precisedelta(timedelta(seconds=next_reinvest_time))}')
 
-                                reinvest_times.append(next_reinvest_time)
-                            
                             except Exception as e:
                                 self.tg_send_msg(
                                     f'*💀 ERROR WHILE EXECUTING PLANTING!*\n\n' \
@@ -124,10 +119,10 @@ class TrunkNativeWorkflow(BscWorkflow):
                                 address
                             )
                     else:
-                        next_reinvest_time = contract.calc_time_until_amount_available(reinvest_threshold)
-                        LOG.info(f'wallet {address} - available of {deposit*reinvest_threshold:.4f} TRUNK ({reinvest_threshold*100:.2f}%) not reached!')
-                        LOG.info(f'wallet {address} - reinvest retry in {humanize.precisedelta(timedelta(seconds=next_reinvest_time))}')
-                        reinvest_times.append(next_reinvest_time)
+                        time_left = contract.calc_time_until_amount_available(reinvest_threshold)
+                        next_runs.append(time_left)
+                        LOG.info(f'wallet {address} - available of {deposit*reinvest_threshold:.4f} TRUNK ({reinvest_threshold*100:.2f}%) for reinvesting not reached!')
+                        LOG.info(f'wallet {address} - next reinvest should approx. occur in {humanize.precisedelta(timedelta(seconds=time_left))}')
             # end try
 
             # start except
@@ -141,17 +136,13 @@ class TrunkNativeWorkflow(BscWorkflow):
             # end except
         # end for loop
 
-        # additional measure, for flucatuating dividends is to 
-        # lower the max. sleep to run_every_seconds
-        reinvest_times.append(self.run_every_seconds)
-
-        # finally check the shortest wait time and sleep
-        if isinstance(reinvest_times, List) and len(reinvest_times) > 0:
-            reinvest_times.sort()
-            sleep_time = reinvest_times[0]
+        if len(next_runs) > 0:
+            next_runs.sort()
+            next_run = next_runs[0]
         else:
-            sleep_time = self.run_every_seconds
-
+            next_run = self.config.run_every_seconds
+        
+        sleep_time = min(max(next_run,0), self.run_every_seconds)
         return sleep_time
 
 

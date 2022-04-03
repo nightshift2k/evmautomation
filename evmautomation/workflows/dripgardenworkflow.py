@@ -17,7 +17,7 @@ class DripGardenWorkflow(BscWorkflow):
     DEFAULT_PLANT_THRESHOLD = 1 # plant at 1 plant
     DEFAULT_SLEEP_LOOP_SECONDS = 30
     DEFAULT_SEEDS_LOSS_THRESHOLD = 0.003
-    DEFAULT_RUN_EVERY_SECONDS = 3600
+    DEFAULT_RUN_EVERY_SECONDS = 60
 
     def __init__(self, config=None, decryption_key: str = None) -> None:
             super().__init__(config, decryption_key)
@@ -31,7 +31,7 @@ class DripGardenWorkflow(BscWorkflow):
     def process_loop(self):
         if not (isinstance(self.wallets, List) and len(self.wallets) > 0):
             return False
-        planting_times = []
+        next_runs = []
         for wallet in self.wallets:
             try:
                 address, private_key = wallet
@@ -62,7 +62,7 @@ class DripGardenWorkflow(BscWorkflow):
                         address
                     )
                     LOG.debug(f"sleeping for {self.run_every_seconds} seconds, in expecation of lower gas")
-                    planting_times.append(self.run_every_seconds)
+                    next_runs.append(self.run_every_seconds)
                     continue
 
                 min_balance = max(bnb_min_balance, plant_fees)
@@ -101,7 +101,7 @@ class DripGardenWorkflow(BscWorkflow):
                             LOG.info(f'{wallet} - old amount = {total_plants} - new amount = {new_total_plants} - added = {new_plants}')
                             LOG.info(f'{wallet} - transaction gas = {tx_gas_cost} - BNB balance = {new_bnb_balance}')
                             LOG.info(f'{wallet} - next planting in {humanize.precisedelta(timedelta(seconds=next_plant_time))}')
-                            planting_times.append(next_plant_time)
+                            next_runs.append(next_plant_time)
 
                         else:
                             if new_plants >= plants_threshold and not seed_range:
@@ -115,7 +115,7 @@ class DripGardenWorkflow(BscWorkflow):
                             seeds_needed = contract.get_seeds_needed(plants_needed)
                             next_plant_time = contract.calculate_next_plant(plants_needed)
                             LOG.debug(f'wallet {address} - time to finish required {plants_needed} plant(s) ({seeds_needed} seeds needed) = {humanize.precisedelta(timedelta(seconds=next_plant_time))}')
-                            planting_times.append(next_plant_time)
+                            next_runs.append(next_plant_time)
                 else:
                     # not enough balance
                     LOG.error(f'wallet {address} has not enough balance, minimum required = {min_balance:.6f} BNB, skipping...')
@@ -135,11 +135,12 @@ class DripGardenWorkflow(BscWorkflow):
                 )
                 LOG.exception(e)
         # end for
-        if len(planting_times) > 0:
-            planting_times.sort()
-            next_run = planting_times[0]
+
+        if len(next_runs) > 0:
+            next_runs.sort()
+            next_run = next_runs[0]
         else:
-            next_run = self.config.run_every_seconds if self.config.run_every_seconds is not None else 30
+            next_run = self.config.run_every_seconds
         
         sleep_time = min(max(next_run,0), self.sleep_loop_seconds)
         return sleep_time

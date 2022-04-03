@@ -32,7 +32,8 @@ class DripFaucetWorkflow(BscWorkflow):
     def process_loop(self):
         if not (isinstance(self.wallets, List) and len(self.wallets) > 0):
             return False
- 
+
+        next_runs = []
         for wallet in self.wallets:
             try:
                 address, private_key = wallet
@@ -140,6 +141,11 @@ class DripFaucetWorkflow(BscWorkflow):
                                     address
                                 )
                             # end if bnb_balance >= min_balance
+                        else:
+                            time_left = contract.calc_time_until_amount_available(hydrate_threshold)
+                            next_runs.append(time_left)
+                            LOG.info(f'wallet {address} - available of {deposit*hydrate_threshold:.6f} DRIP ({hydrate_threshold*100:.2f}%) for hydration not reached!')
+                            LOG.info(f'wallet {address} - next hydration should approx. occur in {humanize.precisedelta(timedelta(seconds=time_left))}')
                         # end if pct_avail > hydrate_threshold
                     # if all hydrate iterations have been completed
                     # check if due to claim
@@ -211,6 +217,12 @@ class DripFaucetWorkflow(BscWorkflow):
                                     f'*Missing:* `{min_balance-bnb_balance:.6f} BNB`',
                                     address
                                 )
+                        else:
+                            time_left = contract.calc_time_until_amount_available(claim_threshold)
+                            next_runs.append(time_left)
+                            LOG.info(f'wallet {address} - available of {deposit*claim_threshold:.6f} DRIP ({claim_threshold*100:.2f}%) for claiming not reached!')
+                            LOG.info(f'wallet {address} - next claim should approx. occur in {humanize.precisedelta(timedelta(seconds=time_left))}')
+
                             # end if bnb_balance >= min_balance
                         # end if pct_avail > claim_threshold
                     # end hydrate/claim
@@ -230,9 +242,13 @@ class DripFaucetWorkflow(BscWorkflow):
                 current_hydration_counter = current_claim_counter = 0 
         # end for loop
 
-        # return default sleep time after all wallets
-        # have been looped
-        sleep_time = self.run_every_seconds
+        if len(next_runs) > 0:
+            next_runs.sort()
+            next_run = next_runs[0]
+        else:
+            next_run = self.config.run_every_seconds
+        
+        sleep_time = min(max(next_run,0), self.run_every_seconds)
         return sleep_time
 
     def run(self):
