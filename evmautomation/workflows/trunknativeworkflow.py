@@ -98,8 +98,8 @@ class TrunkNativeWorkflow(BscWorkflow):
                                     address
                                 )
 
-                                LOG.info(f'{wallet} - old deposit = {deposit:.4f} TRUNK - new deposit = {new_deposit:.4f} TRUNK - added = {available:.4f} TRUNK')
-                                LOG.info(f'{wallet} - transaction gas = {tx_gas_cost} - BNB balance = {new_bnb_balance}')
+                                LOG.info(f'{address} - old deposit = {deposit:.4f} TRUNK - new deposit = {new_deposit:.4f} TRUNK - added = {available:.4f} TRUNK')
+                                LOG.info(f'{address} - transaction gas = {tx_gas_cost} - BNB balance = {new_bnb_balance}')
 
                             except Exception as e:
                                 self.tg_send_msg(

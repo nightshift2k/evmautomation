@@ -128,9 +128,9 @@ class DripFaucetWorkflow(BscWorkflow):
                                     address
                                 )
                             
-                                LOG.info(f'{wallet} - old deposit = {deposit} DRIP - new deposit = {new_deposit} DRIP - added = {available} DRIP')
-                                LOG.info(f'{wallet} - transaction gas = {tx_gas_cost} - BNB balance = {new_bnb_balance}')
-                                LOG.info(f'{wallet} - hydration count = {current_hydration_counter} - max hydration count = {self.hydration_count}')
+                                LOG.info(f'{address} - old deposit = {deposit} DRIP - new deposit = {new_deposit} DRIP - added = {available} DRIP')
+                                LOG.info(f'{address} - transaction gas = {tx_gas_cost} - BNB balance = {new_bnb_balance}')
+                                LOG.info(f'{address} - hydration count = {current_hydration_counter} - max hydration count = {self.hydration_count}')
                             else:
                                 LOG.error(f'wallet {address} -  not enough balance, minimum required = {min_balance:.6f} BNB, skipping...')
                                 self.tg_send_msg(
@@ -205,9 +205,9 @@ class DripFaucetWorkflow(BscWorkflow):
                                     address
                                 )
                             
-                                LOG.info(f'{wallet} - old deposit = {deposit} DRIP - new deposit = {new_deposit} DRIP - added = {available} DRIP')
-                                LOG.info(f'{wallet} - transaction gas = {tx_gas_cost} - BNB balance = {new_bnb_balance}')
-                                LOG.info(f'{wallet} - claim count = {current_claim_counter} - max claim count = {self.claim_count}')
+                                LOG.info(f'{address} - old deposit = {deposit} DRIP - new deposit = {new_deposit} DRIP - added = {available} DRIP')
+                                LOG.info(f'{address} - transaction gas = {tx_gas_cost} - BNB balance = {new_bnb_balance}')
+                                LOG.info(f'{address} - claim count = {current_claim_counter} - max claim count = {self.claim_count}')
                             else:
                                 LOG.error(f'wallet {address} -  not enough balance, minimum required = {min_balance:.6f} BNB, skipping...')
                                 self.tg_send_msg(

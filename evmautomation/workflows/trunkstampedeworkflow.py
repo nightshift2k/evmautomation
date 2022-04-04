@@ -89,8 +89,8 @@ class TrunkStampedeWorkflow(BscWorkflow):
                                     address
                                 )
 
-                                LOG.info(f'{wallet} - old deposit = {deposit} TRUNK - new deposit = {new_deposit} TRUNK - added = {available} TRUNK')
-                                LOG.info(f'{wallet} - transaction gas = {tx_gas_cost} - BNB balance = {new_bnb_balance}')
+                                LOG.info(f'{address} - old deposit = {deposit} TRUNK - new deposit = {new_deposit} TRUNK - added = {available} TRUNK')
+                                LOG.info(f'{address} - transaction gas = {tx_gas_cost} - BNB balance = {new_bnb_balance}')
                             
                             except Exception as e:
                                 self.tg_send_msg(

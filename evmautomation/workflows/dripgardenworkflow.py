@@ -98,9 +98,9 @@ class DripGardenWorkflow(BscWorkflow):
                                 address
                             )
 
-                            LOG.info(f'{wallet} - old amount = {total_plants} - new amount = {new_total_plants} - added = {new_plants}')
-                            LOG.info(f'{wallet} - transaction gas = {tx_gas_cost} - BNB balance = {new_bnb_balance}')
-                            LOG.info(f'{wallet} - next planting in {humanize.precisedelta(timedelta(seconds=next_plant_time))}')
+                            LOG.info(f'{address} - old amount = {total_plants} - new amount = {new_total_plants} - added = {new_plants}')
+                            LOG.info(f'{address} - transaction gas = {tx_gas_cost} - BNB balance = {new_bnb_balance}')
+                            LOG.info(f'{address} - next planting in {humanize.precisedelta(timedelta(seconds=next_plant_time))}')
                             next_runs.append(next_plant_time)
 
                         else:

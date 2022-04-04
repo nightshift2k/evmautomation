@@ -47,7 +47,7 @@ class BaseWorkflow(Thread):
                 f'\n\n' \
                 f'==============\n\n' \
                 f'*Wallet Address:*\n' \
-                f'`{wallet}`'
+                f'`{address}`'
             self.telebot.send_message(self.config.telegram.chat_id, message)
 
 
