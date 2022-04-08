@@ -39,10 +39,10 @@ class BaseWorkflow(Thread):
         else:
             LOG.warn(f'no wallets loaded from {wallet_file}, check file and/or encryption key?!')
 
-    def tg_send_msg(self, message: str, wallet: str = None) -> None:
+    def tg_send_msg(self, message: str, address: str = None) -> None:
         if isinstance(self.telebot, TeleBot) and self.config.telegram.disabled != True:
 
-            if len(wallet) > 0:
+            if len(address) > 0:
                 message = message + \
                 f'\n\n' \
                 f'==============\n\n' \

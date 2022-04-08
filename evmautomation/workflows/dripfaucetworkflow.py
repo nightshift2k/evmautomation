@@ -45,8 +45,8 @@ class DripFaucetWorkflow(BscWorkflow):
                 do_hydrate = do_claim = False # set to false for both
                 
                 # check if we are in our range of iterations for hydrate and claim
-                do_hydrate = current_hydration_counter < self.hydration_count
-                do_claim = current_claim_counter < self.claim_count
+                do_hydrate = current_hydration_counter < self.hydration_count and self.hydration_count > 0
+                do_claim = current_claim_counter < self.claim_count and self.hydration_count > 0
 
                 LOG.debug(f'wallet {address} - do hydrate = {do_hydrate} - do claim = {do_claim}')
 
@@ -239,7 +239,11 @@ class DripFaucetWorkflow(BscWorkflow):
 
             # if we reached the end of both cycles, reset all to 0
             if current_hydration_counter >= self.hydration_count and current_claim_counter >= self.claim_count:
-                current_hydration_counter = current_claim_counter = 0 
+                current_hydration_counter = current_claim_counter = 0
+
+            self.pstore[prefix+'current_hydration_counter'] = current_hydration_counter
+            self.pstore[prefix+'current_claim_counter'] = current_claim_counter
+
         # end for loop
 
         if len(next_runs) > 0:
