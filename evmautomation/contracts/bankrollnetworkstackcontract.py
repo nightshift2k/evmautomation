@@ -56,7 +56,6 @@ class BankRollNetworkStackContract(BscContract):
             user_tokens=b, 
             token_supply=t
         )
-        
         daily_percentage = daily_estimate / b
         return daily_percentage
 

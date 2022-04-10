@@ -44,7 +44,7 @@ class TrunkNativeWorkflow(BscWorkflow):
                 deposit = contract.get_balance_of()
                 available = contract.get_dividends_of()
                 pct_avail = (available / deposit) if deposit > 0 else 0
-                apr = contract.get_apr()
+                apr = contract.get_apr() if deposit > 0 else 0
                 LOG.info(f'wallet {address} - BNB = {bnb_balance:.6f} - TRUNK deposits = {deposit:.4f} - TRUNK available = {available:.4f} ({pct_avail*100:.2f}%) - current APR = {apr*100:.3f}%')
 
                 if deposit > 0 and available > 0:

@@ -43,7 +43,7 @@ class TrunkStampedeWorkflow(BscWorkflow):
                 if deposit > 0 and available > 0:
                     
                     _, roll_threshold = self._roll_at(deposit)
-                    
+
                     if pct_avail > roll_threshold:
                         LOG.info(f'wallet {address} - due for roll at {roll_threshold*100:.2f}%, threshold is >= {deposit*roll_threshold:.3f} TRUNK')
                         roll_tx = contract.get_roll_transaction()
