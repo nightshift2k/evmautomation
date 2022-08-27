@@ -3,6 +3,8 @@
 /*.json
 zz_tests
 *.sqlite
+/*.csv
+.deferred/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

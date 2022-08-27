@@ -60,7 +60,7 @@ class TrunkStampedeContract(BscContract):
             return False
         hydrate_target =  (d * percent_reach)
         missing = max(0, hydrate_target - a)
-        per_minute = d * self.DAILY_INTEREST / 86400
+        per_minute = d * self.get_daily_interest() / 86400
         left = int(missing / per_minute)
         return left
 
@@ -78,3 +78,14 @@ class TrunkStampedeContract(BscContract):
         """
         tx = self._contract.functions.claim().buildTransaction(self.get_transaction_options(gas))
         return tx
+
+    def get_scale_by_peg(self, apr):
+        """
+        returns the current APR scaled by peg
+        """
+
+        scaled_apr = self._web3.fromWei(self._contract.functions.scaleByPeg(self._web3.toWei(apr, "ether")).call(), "ether")
+        return float(scaled_apr)
+
+    def get_daily_interest(self):
+        return self.get_scale_by_peg(205) / 365 / 100

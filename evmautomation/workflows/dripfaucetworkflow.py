@@ -60,7 +60,8 @@ class DripFaucetWorkflow(BscWorkflow):
                 # initialize contracts
                 contract = DripFaucetContract(self.last_rpc_url, address)
                 token = DripTokenContract(self.last_rpc_url, address)
-                
+
+                # Fetch BNB balance                
                 bnb_balance = contract.get_balance()
                 bnb_min_balance = self.config.wallet_bnb_min_balance if self.config.wallet_bnb_min_balance is not None else 0
 
@@ -69,7 +70,7 @@ class DripFaucetWorkflow(BscWorkflow):
                 deposit = contract.get_user_deposits()
                 available = contract.get_user_available()
                 pct_avail = (available / deposit) if deposit > 0 else 0 
-                LOG.debug(f'wallet {address} - BNB = {bnb_balance:.6f} - DRIP deposits = {deposit:.3f} - DRIP available = {available:.3f} ({pct_avail*100:.2f}%)')
+                LOG.debug(f'wallet {address} - BNB = {bnb_balance:.6f} - DRIP balance = {token_balance:.3f} - DRIP deposits = {deposit:.3f} - DRIP available = {available:.3f} ({pct_avail*100:.2f}%)')
 
                 if deposit > 0 and available > 0:
                     _, hydrate_threshold = self._hydrate_at(deposit)
@@ -88,7 +89,7 @@ class DripFaucetWorkflow(BscWorkflow):
                                     f'*⛽ GAS TOO LOW FOR HYDRATE!*\n\n' \
                                     f'*Current Max GAS:* `{self.hydration_max_gas}`\n' \
                                     f'*Optimal GAS (estd.):* `{optimal_gas}`\n\n' \
-                                    f'Try to raise `max_gas` in the config!\n\n' \
+                                    f'Try to raise `hydration_max_gas` in the config!\n\n' \
                                     f'Will wait `{humanize.precisedelta(timedelta(seconds=self.run_every_seconds))}` for lower gas fees!',
                                     address
                                 )
@@ -118,9 +119,9 @@ class DripFaucetWorkflow(BscWorkflow):
 
                                 self.tg_send_msg(
                                     f'*💧 Hydration performed!*\n\n' \
-                                    f'*Old Deposit:* `{deposit:.6f} DRIP`\n' \
-                                    f'*Current Deposit:* `{new_deposit:.6f} DRIP`\n' \
-                                    f'*Added:* `{available:.6f} DRIP`\n' \
+                                    f'*Old Deposit:* `{deposit:.3f} DRIP`\n' \
+                                    f'*Current Deposit:* `{new_deposit:.3f} DRIP`\n' \
+                                    f'*Added:* `{available:.3f} DRIP`\n' \
                                     f'*Percent Added:* `{pct_avail*100:.2f}%`\n' \
                                     f'*BNB balance:* `{new_bnb_balance:.6f} BNB`\n' \
                                     f'*Gas used:* `{tx_gas_cost:.6f} BNB`\n' \
@@ -162,7 +163,7 @@ class DripFaucetWorkflow(BscWorkflow):
                                     f'*⛽ GAS TOO LOW FOR CLAIM!*\n\n' \
                                     f'*Current Max GAS:* `{self.hydration_max_gas}`\n' \
                                     f'*Optimal GAS (estd.):* `{optimal_gas}`\n\n' \
-                                    f'Try to raise `max_gas` in the config!\n\n' \
+                                    f'Try to raise `claim_max_gas` in the config!\n\n' \
                                     f'Will wait `{humanize.precisedelta(timedelta(seconds=self.run_every_seconds))}` for lower gas fees!',
                                     address
                                 )
@@ -195,18 +196,18 @@ class DripFaucetWorkflow(BscWorkflow):
 
                                 self.tg_send_msg(
                                     f'*💧 Claim performed!*\n\n' \
-                                    f'*Old Balance:* `{token_balance:.6f} DRIP`\n' \
-                                    f'*Current Balance:* `{new_token_balance:.6f} DRIP`\n' \
-                                    f'*Added:* `{tokens_added:.6f} DRIP`\n' \
-                                    f'*Fees:* `{fees:.6f} DRIP`\n' \
+                                    f'*Old Balance:* `{token_balance:.3f} DRIP`\n' \
+                                    f'*Current Balance:* `{new_token_balance:.3f} DRIP`\n' \
+                                    f'*Added:* `{tokens_added:.3f} DRIP`\n' \
+                                    f'*Fees:* `{fees:.3f} DRIP`\n' \
                                     f'*BNB balance:* `{new_bnb_balance:.6f} BNB`\n' \
                                     f'*Gas used:* `{tx_gas_cost:.6f} BNB`\n' \
                                     f'*Transaction:* https://bscscan.com/tx/{tx_hash}',
                                     address
                                 )
                             
-                                LOG.info(f'{address} - old deposit = {deposit} DRIP - new deposit = {new_deposit} DRIP - added = {available} DRIP')
-                                LOG.info(f'{address} - transaction gas = {tx_gas_cost} - BNB balance = {new_bnb_balance}')
+                                LOG.info(f'{address} - old balance = {token_balance:.3f} DRIP - new balance = {new_token_balance:.3f} DRIP - added = {tokens_added:3f} DRIP - fees = {fees:.3f} DRIP')
+                                LOG.info(f'{address} - transaction gas = {tx_gas_cost:.6f} - BNB balance = {new_bnb_balance:.6f}')
                                 LOG.info(f'{address} - claim count = {current_claim_counter} - max claim count = {self.claim_count}')
                             else:
                                 LOG.error(f'wallet {address} -  not enough balance, minimum required = {min_balance:.6f} BNB, skipping...')
@@ -220,7 +221,7 @@ class DripFaucetWorkflow(BscWorkflow):
                         else:
                             time_left = contract.calc_time_until_amount_available(claim_threshold)
                             next_runs.append(time_left)
-                            LOG.info(f'wallet {address} - available of {deposit*claim_threshold:.6f} DRIP ({claim_threshold*100:.2f}%) for claiming not reached!')
+                            LOG.info(f'wallet {address} - available of {deposit*claim_threshold:.3f} DRIP ({claim_threshold*100:.2f}%) for claiming not reached!')
                             LOG.info(f'wallet {address} - next claim should approx. occur in {humanize.precisedelta(timedelta(seconds=time_left))}')
 
                             # end if bnb_balance >= min_balance
@@ -240,6 +241,7 @@ class DripFaucetWorkflow(BscWorkflow):
             # if we reached the end of both cycles, reset all to 0
             if current_hydration_counter >= self.hydration_count and current_claim_counter >= self.claim_count:
                 current_hydration_counter = current_claim_counter = 0
+                LOG.info(f'wallet {address} - resetting hydration & claim cycle!')
 
             self.pstore[prefix+'current_hydration_counter'] = current_hydration_counter
             self.pstore[prefix+'current_claim_counter'] = current_claim_counter

@@ -58,8 +58,6 @@ class BaseContract:
              gas = False
         return gas
 
-#
-
     def estimate_transaction_fees(self, transaction):
         """
         Estimates transaction fees for a submitted transaction.
@@ -81,7 +79,7 @@ class BaseContract:
         """
 
         balance = self._web3.fromWei(self._web3.eth.getBalance(self._wallet), "ether")
-        return balance
+        return float(balance)
 
     def get_gas_price(self):
         return self._web3.fromWei(self._web3.eth.gas_price, "ether")
