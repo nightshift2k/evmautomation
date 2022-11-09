@@ -1,9 +1,13 @@
 from typing import Dict
-from evmautomation.workflows import DripFaucetWorkflow, DripGardenWorkflow
-from evmautomation.workflows import TrunkStampedeWorkflow
+from evmautomation.workflows import DripFaucetWorkflow, DripSellWorkflow, DripGardenWorkflow
+from evmautomation.workflows import TrunkStampedeWorkflow, TrunkSellWorkflow
+from evmautomation.workflows import BNBSellWorkflow
 
 CONFIG_TO_WORKFLOW_MAP: Dict = {
     'dripfaucet': DripFaucetWorkflow,
+    'dripsell': DripSellWorkflow,
     'dripgarden': DripGardenWorkflow,
-    'trunkstampede': TrunkStampedeWorkflow
+    'trunkstampede': TrunkStampedeWorkflow,
+    'trunksell': TrunkSellWorkflow,
+    'bnbsell': BNBSellWorkflow
 }

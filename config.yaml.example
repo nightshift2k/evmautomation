@@ -23,13 +23,10 @@ chains:
     # settings by duplicating/adjusting the settings
     # with a different key, like bsc-1, bsc-2, etc.
     bsc:
-        # refresh interval of fastest rpc url.
-        # Before executing any actions against the chain
-        # the tool will try to find the fastest RPC url.
-        # Set to 0 or false for random selection instead of speed measuring
-        rpc_refresh_interval: 300 
-        # all urls below will be used and tested for latency (speed),
-        # fastest is chosen every run
+        # all urls below will be used and tested for health (eth_BlockNumber),
+        # from all healthy url's randomly one is chosen
+        # if a RPC endpoint fails for multiple times, an alternate endpoint
+        # is selected
         rpc_urls:
         - https://bsc-dataseed.binance.org
         - https://bsc-dataseed1.defibit.io
@@ -68,7 +65,8 @@ telegram:
 # currently supported workflows:
 # - dripfaucet
 # - dripgarden
-# - trunknative
+# - dripsell
+# - bnbsell
 # - trunkstampede
 
 workflows:
@@ -121,12 +119,32 @@ workflows:
         claim_table:
             1: 0.05      # at    >=1 DRIP deposits claim at  5% avail
 
+    # Sell DRIP configuration
+    sell-drip:
+        chain: bsc # specify which chain setup this workflow will use
+        workflow: dripsell # the workflow that is applied
+        disabled: true # self explanatory
+        wallet_file: drip-wallets.json # encrypted wallet file for DRIP
+        run_every_seconds: 600 # default sleep time between checks
+        wallet_bnb_min_balance: 0.01 # if set to 0 will actually still check if balance is enough for gas-fees
+        wallet_dust_value: 0.01 # below is dust!
+        dex_max_gas: 650000 # max gas to use for selling on DRIP Fountain, if current gas fees are higher, it will be retried
+        pcs_max_gas: 650000 # max gas to use for selling on PancakeSwap, if current gas fees are higher, it will be retried
+        sell_minimum_price: 5 # minimum price on any DEX to consider selling
+        sell_mode: 0 # where to sell -> 0 = best price, 1 = fountain, 2 = pancakeswap
+        sell_dex_min_spread: 0.025 # price on internal dex needs to at least this higher (in %) to sell on fountain instead pcs
+        sell_slippage: 0.001 # slippage to apply when selling, try something around 1%, depending on the amount you're selling, 0% will certainly fail
+        sell_minimum_amount: 0.5 # at least your wallet(s) need to have this amount of DRIP to sell
+        pcs_transaction_timeout: 120 # timeout to revert pancakeswap sell in seconds
+
+
     # DRIP Garden configuration
     my-garden-wallets:
         chain: bsc # specify which chain setup this workflow will use
         workflow: dripgarden # the workflow that is applied
         disabled: true # self explanatory
         wallet_file: garden-wallets.json # encrypted wallet file for DRIP Garden
+        run_every_seconds: 3600 # default sleep time between checks
         wallet_bnb_min_balance: 0.01 # if set to 0 will actually still check if balance is enough for gas-fees
         max_gas: 250000 # max gas allowed for transaction
         plant_table: # depending how many plants you have, wait until how many plants are grown until planting
@@ -137,7 +155,6 @@ workflows:
             # else plant every 1 plant
         max_seeds_loss: 0.005 # if we don't hit spot on how many seeds of a plant can be lost in %, the more plants you have the higher you'll have to set this
         referrer: "0xd065D3CA0a13eC5A577E684BBF97a43BAF04cBf0" # referrer for the plant function, can be set to null, if you use mine, this will give some rewards to my wallet
-        sleep_time: 10 # sleep between checks, the more plants you have the lower you should set it, avoid 0 for overloading the system
 
     # Elephant TRUNK/Stampede configuration
     my-stampede-wallets:
@@ -156,13 +173,3 @@ workflows:
             50: 0.05     # at   >= 50 TRUNK deposits roll at    5% avail
             1: 0.1       # at    >= 1 TRUNK deposits roll at   10% avail
 
-    my-trunkstaking-wallets:
-        chain: bsc # specify which chain setup this workflow will use
-        workflow: trunknative # the workflow that is applied
-        disabled: true # self explanatory
-        wallet_file: stampede-wallets.json # encrypted wallet file for TRUNK native staking
-        run_every_seconds: 3600 # default sleep time between checks
-        wallet_bnb_min_balance: 0.01 # if set to 0 will actually still check if balance is enough for gas-fees
-        max_gas: 350000 # max gas allowed for transaction
-        reinvest_table: # depending on how many TRUNK is deposited, when to roll
-            1: 0.005     # at >= 1 TRUNK reinvest at 0.5% available

@@ -2,6 +2,7 @@
 DRIP Faucet Contract Subclass
 """
 
+from decimal import Decimal
 from evmautomation.contracts import BscContract
 from evmautomation.defines.drip import DRIP_FAUCET_CONTRACT_ADDRESS, DRIP_FAUCET_ABI
 
@@ -33,7 +34,7 @@ class DripFaucetContract(BscContract):
         """
 
         deposits = self._web3.fromWei(self.get_user_info_totals()[1], 'ether')
-        return float(deposits)
+        return Decimal(deposits)
 
     def get_user_available(self):
         """
@@ -42,7 +43,7 @@ class DripFaucetContract(BscContract):
         """
         
         available = self._web3.fromWei(self._contract.functions.claimsAvailable(self._wallet).call(), 'ether')
-        return float(available)
+        return Decimal(available)
 
     def get_user_percent_available(self):
         """
@@ -63,14 +64,14 @@ class DripFaucetContract(BscContract):
         returns the roll transaction.
         """
 
-        tx = self._contract.functions.roll().buildTransaction(self.get_transaction_options(gas))
+        tx = self._contract.functions.roll().build_transaction(self.get_transaction_options(gas))
         return tx
 
     def get_claim_transaction(self, gas=600000):
         """
         returns the claim transaction
         """
-        tx = self._contract.functions.claim().buildTransaction(self.get_transaction_options(gas))
+        tx = self._contract.functions.claim().build_transaction(self.get_transaction_options(gas))
         return tx
 
     def calc_time_until_amount_available(self, percent_reach) -> int:
@@ -84,8 +85,16 @@ class DripFaucetContract(BscContract):
         a = self.get_user_available()
         if (d == 0):
             return False
-        hydrate_target =  (d * percent_reach)
+        hydrate_target =  (d * Decimal(percent_reach))
         missing = max(0, hydrate_target - a)
-        per_minute = d * self.DAILY_INTEREST / 86400
+        per_minute = d * Decimal(self.DAILY_INTEREST) / 86400
         left = int(missing / per_minute)
         return left
+
+    def get_sustainability_fee_v2(self, pending_divs) -> int:
+        """
+        retrieves the tax of the wallet
+        """
+        divs = self._web3.toWei(pending_divs, 'ether')
+        fee = self._contract.functions.sustainabilityFeeV2(self._wallet, divs).call()
+        return int(fee)

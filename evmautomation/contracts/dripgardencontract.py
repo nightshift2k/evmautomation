@@ -3,6 +3,7 @@ DRIP Garden Contract Subclass
 """
 
 from math import floor
+from decimal import Decimal
 from evmautomation.contracts import BscContract
 from evmautomation.defines.drip import DRIP_GARDEN_CONTRACT_ADDRESS, DRIP_GARDEN_ABI
 from evmautomation.defines.generic import NULL_ADDRESS
@@ -46,7 +47,7 @@ class DripGardenContract(BscContract):
 
     def get_seed_to_lp_ratio(self):
         total_seeds = self.get_user_seeds()
-        total_lp = float(self.calculate_seed_to_lp(total_seeds))
+        total_lp = Decimal(self.calculate_seed_to_lp(total_seeds))
         return total_lp *.95 
 
     def get_plants_ready_and_seed_remainder(self):
@@ -79,5 +80,5 @@ class DripGardenContract(BscContract):
         if not referrer:
             referrer = NULL_ADDRESS
 
-        tx = self._contract.functions.plantSeeds(referrer).buildTransaction(self.get_transaction_options(gas))
+        tx = self._contract.functions.plantSeeds(referrer).build_transaction(self.get_transaction_options(gas))
         return tx

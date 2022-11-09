@@ -69,14 +69,14 @@ class TrunkStampedeContract(BscContract):
         returns the roll transaction.
         """
 
-        tx = self._contract.functions.roll().buildTransaction(self.get_transaction_options(gas))
+        tx = self._contract.functions.roll().build_transaction(self.get_transaction_options(gas))
         return tx
 
     def get_claim_transaction(self, gas=600000):
         """
         returns the claim transaction
         """
-        tx = self._contract.functions.claim().buildTransaction(self.get_transaction_options(gas))
+        tx = self._contract.functions.claim().build_transaction(self.get_transaction_options(gas))
         return tx
 
     def get_scale_by_peg(self, apr):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import logging
-from os import path
+import os
 import sys
 from cryptography.fernet import Fernet
 from evmautomation.tools.encryption import encrypt_wallet_csv
@@ -16,7 +16,7 @@ LOG = logging.getLogger('evmautomation')
 
 
 def encrypt_file(infile, outfile):
-    if path.isfile(infile):
+    if os.path.isfile(infile):
         key = Fernet.generate_key()
         try:
             print(f'encrypting {infile} to {outfile}')
@@ -35,9 +35,10 @@ def main():
         parser.add_argument(
             "-c", 
             "--config",
-            nargs=1,
+            nargs='?',
+            const='config.yaml',
+            default='config.yaml',
             type=str,
-            default="config.yaml",
             help='path to the config file'
         )
 
@@ -69,6 +70,11 @@ def main():
             sys.exit(0)
 
         elif(args.run):
+            config_file = args.config
+            if not os.path.exists(config_file):
+                print(f'{config_file} not found!')
+                sys.exit(1)
+
             ea = EVMAutomation(config=args.config)
             ea.run()
 

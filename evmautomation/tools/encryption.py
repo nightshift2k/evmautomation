@@ -1,6 +1,7 @@
 import csv, json, logging, os
 from cryptography.fernet import Fernet, InvalidToken
 from typing import List
+from web3 import Web3
 
 LOG = logging.getLogger('evmautomation')
 
@@ -56,7 +57,7 @@ def load_encrypted_wallets(infile, key) -> List:
         try:
             decodedWallets.append(
                 [
-                    f.decrypt(wallet[0].encode()).decode(),
+                    Web3.toChecksumAddress(f.decrypt(wallet[0].encode()).decode()),
                     f.decrypt(wallet[1].encode()).decode()
                 ]
             )

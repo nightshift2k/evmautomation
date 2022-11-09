@@ -1,5 +1,6 @@
 import os
 import yaml
+import addict
 
 _default_config = {
     'log': {
@@ -8,35 +9,18 @@ _default_config = {
         }
     }
 
-class AttrDict(dict):
-    def __init__(self, d=None):
-        super().__init__()
-        if d:
-            for k, v in d.items():
-                self.__setitem__(k, v)
+class AttrDict(addict.Dict):
+    def __missing__(self, name):
+        if object.__getattribute__(self, '__frozen'):
+            raise KeyError(name)
+        
+        return None
 
-    def __setitem__(self, key, value):
-        if isinstance(value, dict):
-            value = AttrDict(value)
-        super().__setitem__(key, value)
-
-    def __getattr__(self, item):
-        return self.__getitem__(item)
-
-    def __missing__(self, key):
-        return AttrDict()
-
-    def __repr__(self) -> str:
-        return super().__repr__()
-
-    __setattr__ = __setitem__
-
-
+        
 class Config:
     def __init__(self, config=None):
         self.config = AttrDict(_default_config)
         self.log_msg = ""
-
         if isinstance(config, str):
             if config and os.path.exists(config):
                 with open(config) as fp:

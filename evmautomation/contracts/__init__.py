@@ -3,5 +3,8 @@ from evmautomation.contracts.bsccontract import BscContract
 from evmautomation.contracts.bep20tokencontract import BEP20TokenContract
 from evmautomation.contracts.driptokencontract import DripTokenContract
 from evmautomation.contracts.dripfaucetcontract import DripFaucetContract
+from evmautomation.contracts.dripfountaincontract import DripFountainContract
 from evmautomation.contracts.dripgardencontract import DripGardenContract
 from evmautomation.contracts.trunkstampedecontract import TrunkStampedeContract
+
+from evmautomation.contracts.pcsroutercontract import PancakeSwapRouterContract

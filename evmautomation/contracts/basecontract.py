@@ -2,6 +2,7 @@
 Basic Wrapper for Web3 functions
 """
 
+from decimal import Decimal
 from web3 import Web3
 from web3.contract import Contract
 from typing import Any, List
@@ -13,28 +14,40 @@ class BaseContract:
 
     _web3: Web3 
     _contract: Contract
+    _contract_address: str
     _wallet: Any
+    _rpc_url: str
 
     def __init__(self, rpc_url: str, contract_address: str, abi: List, wallet_address: str) -> None:
         """
         Initializes the module with given config
         """
 
-        self._web3 = Web3(Web3.HTTPProvider(rpc_url))
+        if rpc_url.startswith('http'):
+            self._web3 = Web3(Web3.HTTPProvider(rpc_url))
+        elif rpc_url.startswith('wss'):
+            self._web3 = Web3(Web3.WebsocketProvider(rpc_url))
+        self._contract_address = contract_address
         self._contract = self._web3.eth.contract(address=contract_address, abi=abi)
         self._wallet = wallet_address
+        self._rpc_url = rpc_url
 
-    def get_transaction_options(self, gas=500000):
+    def get_transaction_options(self, gas=500000, **kwargs):
         """
         returns a dict with transaction options
+        extendable with kwargs
         """
 
-        return {
+        base_options = {
             "nonce": self._web3.eth.getTransactionCount(self._wallet),
             "from": self._wallet,
             "gas": gas,
             "gasPrice": self._web3.eth.gas_price
         }
+
+        tx_options = {**base_options, **kwargs}
+
+        return tx_options
 
     def send_transaction(self, transaction, private_key):
         """
@@ -79,7 +92,10 @@ class BaseContract:
         """
 
         balance = self._web3.fromWei(self._web3.eth.getBalance(self._wallet), "ether")
-        return float(balance)
+        return Decimal(balance)
+
+    def get_decimals(self):
+        return int(self._contract.functions.decimals().call())
 
     def get_gas_price(self):
         return self._web3.fromWei(self._web3.eth.gas_price, "ether")

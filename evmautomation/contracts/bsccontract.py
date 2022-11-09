@@ -13,23 +13,26 @@ class BscContract(BaseContract):
     the BSC network.
     """
 
-    def get_pcs_token_price(self, token_address: str) -> Decimal: 
-        """
-        requests USD price for a given token address from
-        pancakeswap.
-        """
+    # def get_pcs_token_price(self, token_address: str): 
+    #     """
+    #     requests BUSD & WBNB price for a given token address from
+    #     pancakeswap.
+    #     """
 
-        pcs_data = requests.get(PANCAKESWAP_API_URL_TOKENS + token_address)
-        json_data = pcs_data.json()
-        price = Decimal(json_data['data']['price'])
-        if price > 0:
-            return price
-        else:
-            return False
+    #     pcs_data = requests.get(PANCAKESWAP_API_URL_TOKENS + token_address)
+    #     json_data = pcs_data.json()
+    #     busd_price = Decimal(json_data['data']['price'])
+    #     bnb_price = Decimal(json_data['data']['price_BNB'])
 
-    def get_pcs_bnb_price(self) -> Decimal:
-        """
-        requests the current price for the BNB coin.
-        """
+    #     return busd_price, bnb_price
 
-        return self.get_pcs_token_price(WBNB_TOKEN_ADDRESS)
+    # def get_pcs_wbnb_price(self):
+    #     """
+    #     return WBNB price in BUSD
+    #     """
+
+    #     price, _ = self.get_pcs_token_price(WBNB_TOKEN_ADDRESS)
+
+    #     return price
+        
+        

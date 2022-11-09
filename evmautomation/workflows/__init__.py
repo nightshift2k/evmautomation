@@ -2,4 +2,7 @@ from evmautomation.workflows.baseworkflow import BaseWorkflow
 from evmautomation.workflows.bscworkflow import BscWorkflow
 from evmautomation.workflows.dripfaucetworkflow import DripFaucetWorkflow
 from evmautomation.workflows.dripgardenworkflow import DripGardenWorkflow
+from evmautomation.workflows.dripsellworkflow import DripSellWorkflow
 from evmautomation.workflows.trunkstampedeworkflow import TrunkStampedeWorkflow
+from evmautomation.workflows.trunksellworkflow import TrunkSellWorkflow
+from evmautomation.workflows.bnbsellworkflow import BNBSellWorkflow
