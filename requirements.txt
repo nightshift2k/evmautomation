@@ -1,3 +1,4 @@
+addict
 arrow
 cryptography
 humanize
